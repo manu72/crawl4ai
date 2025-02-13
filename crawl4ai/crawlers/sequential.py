@@ -7,7 +7,7 @@ from ..utils.filename import generate_filename
 
 # Constants can be moved to a config file or environment variables
 SAVE_MARKDOWN = True
-OUTPUT_FILE_PREFIX = "crawl4ai"
+OUTPUT_FILE_PREFIX = "vaea"
 MAX_PAGES_TO_SAVE = None # None for unlimited
 
 async def crawl_sequential(urls: List[str]):
@@ -20,7 +20,13 @@ async def crawl_sequential(urls: List[str]):
     output_dir = None
     timestamp = None
     if SAVE_MARKDOWN:
-        output_dir = Path("output")
+
+         # Create main output directory
+        base_output_dir = Path("output")
+        base_output_dir.mkdir(exist_ok=True)
+        
+        # Create subdirectory using OUTPUT_FILE_PREFIX
+        output_dir = base_output_dir / OUTPUT_FILE_PREFIX
         output_dir.mkdir(exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 

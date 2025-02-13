@@ -1,7 +1,7 @@
-import aiohttp
-from bs4 import BeautifulSoup
-from pydantic import BaseModel
 import re
+import aiohttp
+# from bs4 import BeautifulSoup
+from pydantic import BaseModel
 from ..strategies.markdown import DefaultMarkdownGenerator
 
 class BrowserConfig(BaseModel):
@@ -60,7 +60,7 @@ class AsyncWebCrawler:
         """Run the crawler on a single URL"""
         if self.session is None:
             raise RuntimeError("Crawler must be used within an async context manager")
-            
+
         try:
             async with self.session.get(url, ssl=self.browser_config.verify_ssl) as response:
                 response.raise_for_status()
