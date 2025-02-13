@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from datetime import datetime
+from dotenv import load_dotenv
 import argparse
 import logging
 import os
@@ -8,6 +10,8 @@ import openai
 # Set up logging for debugging and error tracking.
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+load_dotenv()  # Add this near the top of the file, before accessing env vars
 
 # Securely load the API key from an environment variable.
 api_key = os.getenv("OPENAI_API_KEY")
@@ -48,7 +52,7 @@ def summarize_page(page_content: str) -> str:
     Summarizes a single page's markdown content.
     """
     prompt_template = (
-        "You are an expert content summarizer. Summarize the following webpage content "
+        "You are an expert news content summarizer. Summarize the following webpage content "
         "in a few concise paragraphs, highlighting the main points and structure.\n\n{text}\n"
     )
     return summarize_text(page_content, prompt_template)
@@ -57,19 +61,39 @@ def summarize_website(pages: dict) -> str:
     """
     Produces an overall website summary by combining the individual page contents.
     """
-    # Option 1: Combine page summaries and then summarize
     combined_summaries = ""
     for file_name, content in pages.items():
         page_summary = summarize_page(content)
         combined_summaries += f"Summary for {file_name}:\n{page_summary}\n\n"
     
     website_prompt = (
-        "You are an expert website analyst. Based on the following summaries of website pages, "
-        "produce a concise overall summary of the website. Highlight its key themes, purpose, "
-        "and structure.\n\n{combined_summaries}"
+        "You are an expert news website analyst. Based on the following summaries of website pages, "
+        "produce a well-structured markdown report. Include:\n"
+        "1. An executive summary at the top\n"
+        "2. Key themes and insights\n"
+        "3. Individual story summaries organized by topic\n"
+        "4. Notable trends or patterns\n"
+        "Use proper markdown formatting with headers, bullet points, and sections.\n\n{text}"
     )
-    prompt = website_prompt.format(combined_summaries=combined_summaries)
+    prompt = website_prompt.format(text=combined_summaries)
     return call_chatgpt(prompt)
+
+def create_markdown_report(page_summaries: dict, overall_summary: str, timestamp: str) -> str:
+    """Creates a formatted markdown report combining all summaries."""
+    report = f"""# Daily News Summary Report
+Generated on: {timestamp}
+
+## Executive Summary
+{overall_summary}
+
+## Individual Story Summaries
+
+"""
+    # Add individual summaries
+    for file_name, summary in page_summaries.items():
+        report += f"### {file_name}\n{summary}\n\n"
+    
+    return report
 
 def read_markdown_files(folder: str) -> dict:
     """
@@ -92,7 +116,7 @@ def read_markdown_files(folder: str) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Summarize website content using the OpenAI ChatGPT API."
+        description="Summarise website content using the OpenAI ChatGPT API."
     )
     parser.add_argument("folder", help="Folder containing markdown files of website pages.")
     args = parser.parse_args()
@@ -107,8 +131,10 @@ def main():
         logger.error("No markdown files found in the specified folder.")
         exit(1)
 
-    logger.info("Summarizing individual pages...")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logger.info("Summarising individual pages...")
     page_summaries = {}
+    
     for file_name, content in pages.items():
         logger.info(f"Processing {file_name}...")
         try:
@@ -116,14 +142,26 @@ def main():
             page_summaries[file_name] = summary
             print(f"\nSummary for {file_name}:\n{summary}\n{'-'*60}")
         except Exception as e:
-            logger.error(f"Error summarizing {file_name}: {e}")
+            logger.error(f"Error summarising {file_name}: {e}")
 
-    logger.info("Summarizing overall website...")
+    logger.info("Creating overall website summary...")
     try:
         overall_summary = summarize_website(pages)
         print(f"\nOverall Website Summary:\n{overall_summary}\n{'='*60}")
+        
+        # Create consolidated report
+        report = create_markdown_report(page_summaries, overall_summary, timestamp)
+        
+        # Save consolidated report
+        output_dir = Path("output")
+        output_dir.mkdir(exist_ok=True)
+        report_filename = f"news_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        report_path = output_dir / report_filename
+        report_path.write_text(report)
+        logger.info(f"Consolidated report saved to: {report_path}")
+        
     except Exception as e:
-        logger.error(f"Error summarizing website: {e}")
+        logger.error(f"Error creating summary report: {e}")
 
 if __name__ == "__main__":
     main()

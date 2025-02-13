@@ -8,21 +8,11 @@ from crawl4ai.utils.filename import generate_filename
 # Constants for configuration
 URLS_TO_CRAWL = [
     #"https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news",
-    #"https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing",
-    "https://www.abc.net.au/news", 
-    "https://www.abc.net.au/news/world",
-    "https://www.abc.net.au/news/politics",
-    "https://www.abc.net.au/news/business",
-    "https://www.abc.net.au/news/technology",
-    "https://www.abc.net.au/news/science",
-    "https://www.abc.net.au/news/health",
-    "https://www.abc.net.au/news/entertainment",
-    "https://www.abc.net.au/news/indigenous",
-    "https://www.abc.net.au/news/environment",
-    "https://www.abc.net.au/news/justin",
+    "https://www.sbs.com.au/news/latest-news",
+    "https://www.sbs.com.au/language/filipino/en"
     # Add more URLs as needed
 ]
-OUTPUT_FILE_PREFIX = "abc"  # Default prefix for files
+OUTPUT_FILE_PREFIX = "sbs"  # Default prefix for files
 
 async def main():
     try:
